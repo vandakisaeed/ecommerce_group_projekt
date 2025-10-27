@@ -1,14 +1,17 @@
-// console.log("Hello World");
+import { NextResponse } from "next/server";
 
-import { pickRandom } from "#utils";
+export async function GET() {
+  try {
+    // You can replace this with a real DB call later
+    const res = await fetch("https://fakestoreapi.com/products");
+    const data = await res.json();
 
-console.log("Server is running for Edu");
-console.log(pickRandom([1, 2, 3, 4, 5]));
-console.log(pickRandom(["apple", "banana", "cherry"]));
-console.log(pickRandom([]));
-console.log(pickRandom([true, false, true]));
-console.log(pickRandom(["red", "green", "blue", "yellow"]));
-console.log(pickRandom([null, undefined, 42]));
-console.log(pickRandom(["a", "b", "c", "d", "e", "f", "g"]));
-console.log(pickRandom([1.1, 2.2, 3.3, 4.4, 5.5]));
-console.log(pickRandom(["x", "y", "z", "w", "v"]));
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 }
+    );
+  }
+}
