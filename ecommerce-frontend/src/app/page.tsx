@@ -18,52 +18,47 @@ export default function Main() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch products from Express backend
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("/api/main_server"); // Fetch from your internal API
+        const res = await fetch("http://localhost:4000/products");
         const data = await res.json();
         setProducts(data);
-        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch products:", error);
+      } finally {
         setLoading(false);
       }
     }
     fetchProducts();
   }, []);
 
-  // Add product to cart (also sync with server-side cart)
+  // Add to cart
   const addToCart = async (product: Product) => {
-    // optimistic UI update
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.id === product.id);
       if (existing) {
-        // Increment quantity
         return prevCart.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
-      } else {
-        // Add new item
-        return [...prevCart, { ...product, quantity: 1 }];
       }
+      return [...prevCart, { ...product, quantity: 1 }];
     });
 
     try {
-      await fetch("/api/cart", {
+      await fetch("http://localhost:4000/api/cart", {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: { id: product.id, title: product.title, price: product.price, image: product.image } }),
+        body: JSON.stringify({ product }),
       });
     } catch (err) {
-      console.error("Failed to add to server cart:", err);
-      // optionally, you could roll back optimistic update here
+      console.error("Failed to sync cart:", err);
     }
   };
 
-  // Remove one quantity or remove item
-  const removeFromCart = async(id: number) => {
+  // Remove from cart
+  const removeFromCart = async (id: number) => {
     setCart((prevCart) =>
       prevCart
         .map((item) =>
@@ -73,33 +68,22 @@ export default function Main() {
     );
 
     try {
-      await fetch("/api/cart", {
+      await fetch("http://localhost:4000/api/cart", {
         method: "DELETE",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: { id: id } }),
+        body: JSON.stringify({ product: { id } }),
       });
     } catch (err) {
-      console.error("Failed to add to server cart:", err);
-      // optionally, you could roll back optimistic update here
+      console.error("Failed to sync cart:", err);
     }
   };
 
-  // Calculate total
-  const totalPrice = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  if (loading) {
-    return (
-      <div className="text-center py-20 text-lg">Loading products...</div>
-    );
-  }
+  if (loading) return <div className="text-center py-20 text-lg">Loading products...</div>;
 
   return (
     <div className="px-6 py-10 bg-base-100">
-      {/* Hero Section */}
       <section className="text-center mb-12">
         <h1 className="text-5xl font-bold mb-4">Welcome to TechStore 🛍️</h1>
         <p className="text-lg text-gray-500 mb-6">
@@ -107,7 +91,6 @@ export default function Main() {
         </p>
       </section>
 
-      {/* Cart Section */}
       <section className="bg-base-200 p-4 rounded-xl shadow mb-10">
         <h2 className="text-2xl font-semibold mb-4">🛒 Your Cart</h2>
         {cart.length === 0 ? (
@@ -116,10 +99,7 @@ export default function Main() {
           <>
             <ul className="space-y-3 mb-4">
               {cart.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex justify-between items-center border-b pb-2"
-                >
+                <li key={item.id} className="flex justify-between items-center border-b pb-2">
                   <div>
                     <p className="font-medium">{item.title}</p>
                     <p className="text-sm text-gray-500">
@@ -127,30 +107,21 @@ export default function Main() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      className="btn btn-xs btn-outline"
-                      onClick={() => removeFromCart(item.id)}
-                    >
+                    <button className="btn btn-xs btn-outline" onClick={() => removeFromCart(item.id)}>
                       -
                     </button>
-                    <button
-                      className="btn btn-xs btn-primary"
-                      onClick={() => addToCart(item)}
-                    >
+                    <button className="btn btn-xs btn-primary" onClick={() => addToCart(item)}>
                       +
                     </button>
                   </div>
                 </li>
               ))}
             </ul>
-            <p className="text-lg font-semibold">
-              Total: ${totalPrice.toFixed(2)}
-            </p>
+            <p className="text-lg font-semibold">Total: ${totalPrice.toFixed(2)}</p>
           </>
         )}
       </section>
 
-      {/* Products Section */}
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {products.map((product) => (
           <div
@@ -166,14 +137,9 @@ export default function Main() {
             </figure>
             <div className="card-body text-center">
               <h2 className="card-title justify-center">{product.title}</h2>
-              <p className="text-lg font-semibold">
-                ${product.price.toFixed(2)}
-              </p>
+              <p className="text-lg font-semibold">${product.price.toFixed(2)}</p>
               <div className="card-actions justify-center">
-                <button
-                  className="btn btn-accent btn-sm"
-                  onClick={() => addToCart(product)}
-                >
+                <button className="btn btn-accent btn-sm" onClick={() => addToCart(product)}>
                   Add to Cart
                 </button>
               </div>
