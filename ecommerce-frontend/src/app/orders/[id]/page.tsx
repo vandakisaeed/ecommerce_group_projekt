@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 
 interface OrderItem {
   _id: string;
@@ -43,7 +44,9 @@ interface Order {
   createdAt: Date;
 }
 
-export default function OrderPage({ params }: { params: { id: string } }) {
+export default function OrderPage() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -51,10 +54,34 @@ export default function OrderPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/orders/${params.id}`);
-        if (!res.ok) {
-          throw new Error('Failed to fetch order');
+        const isHex24 = (val: unknown): val is string => typeof val === 'string' && /^[a-fA-F0-9]{24}$/.test(val);
+        if (!isHex24(id)) {
+          console.error('Invalid order id in URL param:', id);
+          setError('Invalid order id');
+          setLoading(false);
+          return;
         }
+
+        const res = await fetch(`http://localhost:4000/api/orders/${id}`);
+        if (!res.ok) {
+          // Try to parse JSON error, otherwise read text for debugging
+          let details = '';
+          try {
+            const errJson = await res.json();
+            details = errJson.message || JSON.stringify(errJson);
+          } catch {
+            try {
+              const text = await res.text();
+              details = text.slice(0, 1000);
+            } catch (tErr) {
+              details = String(tErr);
+            }
+          }
+          console.error('Order fetch failed', res.status, details);
+          setError(`Failed to fetch order: ${res.status} ${details}`);
+          return;
+        }
+
         const data = await res.json();
         setOrder(data);
       } catch (err) {
@@ -66,7 +93,7 @@ export default function OrderPage({ params }: { params: { id: string } }) {
     };
 
     fetchOrder();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="alert alert-error">{error}</div>;

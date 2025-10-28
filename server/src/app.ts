@@ -21,8 +21,24 @@ app.use(express.json());
 app.get("/products", async (req, res) => {
   try {
     const response = await fetch("https://fakestoreapi.com/products");
+
+    // If upstream returned non-OK, capture the body as text for debugging
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`Upstream products fetch failed: ${response.status} - ${text.slice(0, 1000)}`);
+      return res.status(502).json({ error: 'Failed to fetch products from upstream', status: response.status, details: text });
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      // Upstream returned HTML or something else — log first chunk and return a safe error
+      const text = await response.text();
+      console.error('Upstream products fetch returned non-JSON response:', text.slice(0, 1000));
+      return res.status(502).json({ error: 'Upstream returned non-JSON for products', details: text.slice(0, 1000) });
+    }
+
     const data = await response.json();
-    res.json(data);
+    return res.json(data);
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ error: "Failed to fetch products" });

@@ -96,7 +96,7 @@ export default function Nav() {
       <div className="flex-1">
         <Link href="/" className="btn btn-ghost text-xl font-extrabold tracking-tight">Buy Buy Beyond</Link>
       </div>
-  <div className="flex-none flex items-center gap-2">
+      <div className="flex-none flex items-center gap-2">
   <div className="dropdown dropdown-end">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
             <div className="indicator">
@@ -118,6 +118,9 @@ export default function Nav() {
             </div>
           </div>
         </div>
+        {user && (
+          <Link href="/orders" className="btn btn-ghost">Orders</Link>
+        )}
         
         <button
           className="btn btn-circle btn-ghost"

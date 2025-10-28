@@ -102,7 +102,7 @@ export default function Main() {
   return (
     <div className="px-6 py-10 bg-base-100">
       <section className="text-center mb-12">
-        <h1 className="text-5xl font-bold mb-4">Welcome to TechStore 🛍️</h1>
+        <h1 className="text-5xl font-bold mb-4">Welcome to Buy Buy Beyond 🛍️</h1>
         <p className="text-lg text-gray-500 mb-6">
           Discover the latest gadgets and accessories at unbeatable prices.
         </p>

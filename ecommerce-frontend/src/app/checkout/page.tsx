@@ -19,6 +19,14 @@ interface ShippingAddress {
   country: string;
 }
 
+interface OrderResponse {
+  order?: {
+    _id?: string;
+    // add other order fields if needed
+  };
+  message?: string;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
@@ -61,7 +69,7 @@ export default function CheckoutPage() {
       return;
     }
 
-  const { taxPrice, shippingPrice, totalPrice } = calculateTotals();
+    const { taxPrice, shippingPrice, totalPrice } = calculateTotals();
 
     try {
       const orderData = {
@@ -88,27 +96,71 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData)
       });
 
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to create order');
+      let data: unknown = null;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text();
+        console.error('Order creation returned non-JSON:', text.slice(0, 1000));
+        throw new Error(`Order creation failed: ${res.status} - ${text.slice(0, 1000)}`);
       }
 
-      const { order } = data as { order?: { _id?: string } };
+      if (!res.ok) {
+        if (
+          typeof data === 'object' &&
+          data !== null &&
+          'message' in data &&
+          typeof (data as { message: unknown }).message === 'string'
+        ) {
+          throw new Error((data as { message: string }).message);
+        }
+        throw new Error(`Failed to create order (status ${res.status})`);
+      }
 
-      if (!order || !order._id) {
+      // Type guards without using 'any'
+      const isObject = (val: unknown): val is Record<string, unknown> =>
+        typeof val === 'object' && val !== null;
+
+      const hasOrderObj = (
+        obj: Record<string, unknown>
+      ): obj is { order: Record<string, unknown> } =>
+        'order' in obj &&
+        typeof (obj as { order?: unknown }).order === 'object' &&
+        (obj as { order?: unknown }).order !== null;
+
+      function isOrderResponse(obj: unknown): obj is OrderResponse {
+        if (!isObject(obj)) return false;
+        // order is optional; if absent it's still an OrderResponse (with potential message)
+        if (!('order' in obj)) return true;
+        // if present, ensure it's an object
+        return hasOrderObj(obj);
+      }
+
+      const isHex24 = (val: unknown): val is string =>
+        typeof val === 'string' && /^[a-fA-F0-9]{24}$/.test(val);
+
+      if (!isOrderResponse(data) || !data.order || !data.order._id || !isHex24(data.order._id)) {
         console.error('Order creation response missing order id:', data);
-        setError(data.message || 'Order created but no order id returned');
+        const fallbackMsg =
+          typeof data === 'object' &&
+          data !== null &&
+          'message' in data &&
+          typeof (data as { message: unknown }).message === 'string'
+            ? (data as { message: string }).message
+            : data
+            ? JSON.stringify(data).slice(0, 1000)
+            : undefined;
+        setError(fallbackMsg || 'Order created but no valid order id returned');
         return;
       }
 
       // Clear cart
-  localStorage.setItem('cart', '[]');
-  // Notify navbar and other listeners in same tab
-  window.dispatchEvent(new Event('cartUpdated'));
-      
+      localStorage.setItem('cart', '[]');
+      window.dispatchEvent(new Event('cartUpdated'));
+
       // Redirect to order confirmation
-      router.push(`/orders/${order._id}`);
+      console.log('Redirecting to order details with id:', data.order._id);
+      router.push(`/orders/${data.order._id}`);
     } catch (err) {
       console.error('Checkout error:', err);
       setError('Failed to process order. Please try again.');
