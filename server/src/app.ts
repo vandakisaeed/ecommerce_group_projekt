@@ -1,9 +1,14 @@
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch"; // optional if Node <18
-import connectDB from "#db";
+import { connectDB } from "./db/index";
+import { signup, login } from "./controllers/authController";
+import { createOrder, getUserOrders, getOrderById, updateOrderToPaid } from "./controllers/orderController";
 
 const app = express();
+
+// Connect to MongoDB
+connectDB();
 
 // Enable CORS for frontend
 app.use(cors({
@@ -26,6 +31,26 @@ app.get("/products", async (req, res) => {
 
 // Optional cart route (for add/remove simulation)
 let cart: any[] = [];
+
+// Auth routes
+app.post("/api/auth_server", (req, res) => {
+  const { action } = req.body;
+  
+  switch (action) {
+    case "signup":
+      return signup(req, res);
+    case "login":
+      return login(req, res);
+    default:
+      return res.status(400).json({ message: "Invalid action" });
+  }
+});
+
+// Order routes
+app.post("/api/orders", createOrder);
+app.get("/api/orders/user/:userId", getUserOrders);
+app.get("/api/orders/:orderId", getOrderById);
+app.put("/api/orders/:orderId/pay", updateOrderToPaid);
 
 app.post("/api/cart", (req, res) => {
   const { product } = req.body;

@@ -11,6 +11,5 @@ const CategoriesSchema: Schema = new Schema({
 		maxlength: [50, "Categoriename cannot exceed 50 characters"],
 	},
 });
-export const Categories =
-	(mongoose.models.Categories as mongoose.Model<ICategories>) ||
-	mongoose.model<ICategories>("User", CategoriesSchema);
+const Categories = mongoose.model<ICategories>("Categories", CategoriesSchema);
+export default Categories;

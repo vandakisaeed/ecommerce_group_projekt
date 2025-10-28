@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios, { Axios } from "axios";
+// Removed unused axios import
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ export default function SignupPage() {
 
     try {
       // Signup: server expects POST with action: 'signup'
-      const res = await fetch("/api/auth_server", {
+      const res = await fetch("http://localhost:4000/api/auth_server", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "signup", userName: name, email, password }),
@@ -46,9 +46,10 @@ export default function SignupPage() {
       } else {
         setError(data.message || "Signup failed. Try again.");
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Signup error:", err);
-      setError(err.message || "Signup failed. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "Signup failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

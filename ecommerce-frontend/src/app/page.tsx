@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from '../config/api';
 
 interface Product {
@@ -44,7 +45,10 @@ export default function Main() {
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      const newCart = [...prevCart, { ...product, quantity: 1 }];
+      // Save cart to localStorage
+      localStorage.setItem('cart', JSON.stringify(newCart));
+      return newCart;
     });
 
     try {
@@ -119,7 +123,10 @@ export default function Main() {
                 </li>
               ))}
             </ul>
-            <p className="text-lg font-semibold">Total: ${totalPrice.toFixed(2)}</p>
+            <p className="text-lg font-semibold mb-4">Total: ${totalPrice.toFixed(2)}</p>
+            <Link href="/checkout" className="btn btn-primary w-full">
+              Proceed to Checkout
+            </Link>
           </>
         )}
       </section>

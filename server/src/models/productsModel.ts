@@ -24,8 +24,8 @@ const productSchema = new Schema(
 		},
 		categorieId: {
 			type: mongoose.Schema.Types.ObjectId,
-			require: true,
-			ref: "User",
+			required: true,
+			ref: "Categories",
 		},
 	},
 	{
