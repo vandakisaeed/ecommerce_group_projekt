@@ -19,8 +19,10 @@ export default function ProfilePage() {
     try {
       const stored = localStorage.getItem("user");
       if (!stored) return null;
-      const parsed: User = JSON.parse(stored);
-      return parsed?.id ? parsed : null;
+  type StoredUser = Partial<User> & { _id?: string };
+  const parsed = JSON.parse(stored) as StoredUser;
+  const effectiveId = parsed?.id || parsed?._id;
+  return effectiveId ? ({ ...parsed, id: effectiveId } as User) : null;
     } catch (e) {
       console.error("Failed to load user from storage", e);
       return null;

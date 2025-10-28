@@ -1,2 +1,17 @@
 @import "tailwindcss";
+/* stylelint-disable-next-line at-rule-no-unknown */
 @plugin "daisyui";
+
+/* Slightly increase contrast in dark mode by tweaking DaisyUI theme tokens */
+:root[data-theme="dark"] {
+	/* Darker base background */
+	--b1: 220 13% 10%; /* base-100 */
+	--b2: 220 13% 12%; /* base-200 */
+	--b3: 220 13% 14%; /* base-300 */
+	/* Brighter base content (text) */
+	--bc: 210 20% 96%; /* base-content */
+
+	/* Neutral surfaces slightly darker; neutral content brighter */
+	--n: 220 13% 18%;
+	--nc: 210 20% 96%;
+}

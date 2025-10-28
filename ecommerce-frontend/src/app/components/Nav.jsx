@@ -35,8 +35,10 @@ export default function Nav() {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          if (parsedUser?.id) {
-            setUser(parsedUser);
+          // Be tolerant of legacy shapes: accept id or _id
+          const effectiveId = parsedUser?.id || parsedUser?._id;
+          if (effectiveId) {
+            setUser({ ...parsedUser, id: effectiveId });
           } else {
             setUser(null);
           }

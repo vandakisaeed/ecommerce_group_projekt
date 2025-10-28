@@ -72,6 +72,37 @@ const orderSchema = new mongoose.Schema(
 	}
 );
 
+// Virtuals to align with FR014 response shape without breaking existing fields
+// userId mirrors user
+orderSchema.virtual('userId').get(function(this: any) {
+	return this.user;
+});
+
+// products maps orderItems -> { productId, quantity }
+orderSchema.virtual('products').get(function(this: any) {
+	if (!Array.isArray(this.orderItems)) return [];
+	return this.orderItems.map((it: any) => ({
+		productId: it.product, // may be an external id string in this app
+		quantity: it.qty,
+	}));
+});
+
+// total mirrors totalPrice
+orderSchema.virtual('total').get(function(this: any) {
+	return typeof this.totalPrice === 'number' ? this.totalPrice : 0;
+});
+
+// Response shaping: map _id -> id, drop __v, include virtuals
+orderSchema.set('toJSON', {
+	virtuals: true,
+	versionKey: false,
+	transform: (_doc, ret: any) => {
+		ret.id = ret._id;
+		delete ret._id;
+		return ret;
+	}
+});
+
 const Order = mongoose.model("Order", orderSchema);
 
 export default Order;

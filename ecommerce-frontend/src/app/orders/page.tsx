@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 interface Order {
-  _id: string;
+  id?: string;
+  _id?: string;
   createdAt: string;
   totalPrice: number;
   isPaid: boolean;
@@ -72,9 +73,11 @@ export default function OrderHistory() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
-                <tr key={order._id}>
-                  <td>{order._id.substring(0, 8)}...</td>
+              {orders.map((order) => {
+                const orderId = order.id || order._id || 'unknown';
+                return (
+                <tr key={orderId}>
+                  <td>{orderId.substring(0, 8)}...</td>
                   <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                   <td>€{order.totalPrice.toFixed(2)}</td>
                   <td>
@@ -96,14 +99,15 @@ export default function OrderHistory() {
                   </td>
                   <td>
                     <Link 
-                      href={`/orders/${order._id}`}
+                      href={`/orders/${orderId}`}
                       className="btn btn-sm btn-primary"
                     >
                       Details
                     </Link>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

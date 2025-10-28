@@ -66,10 +66,12 @@ export default function LoginPage() {
         // Server sets httpOnly cookies for tokens; don't store token client-side
         console.log("✅ Login successful", data);
         localStorage.setItem("user", JSON.stringify(data.user));
+        // Notify navbar in the same tab
+        window.dispatchEvent(new Event("profileUpdated"));
 
-  setIsLoggedIn(true);
-  setEmail(data.user.email);
-  router.push("/");
+        setIsLoggedIn(true);
+        setEmail(data.user.email);
+        router.push("/");
       } else {
         setError((data.message || "Invalid email or password") + (data.debug ? `\nDebug: ${data.debug}` : ""));
       }
@@ -137,6 +139,7 @@ export default function LoginPage() {
 
       // Server returns message on success
         localStorage.removeItem("user");
+        window.dispatchEvent(new Event("profileUpdated"));
       setIsLoggedIn(false);
       router.push("/signup");
       } catch (err: unknown) {
@@ -160,7 +163,8 @@ export default function LoginPage() {
     }
 
     // Clear client-side session
-    localStorage.removeItem("user");
+  localStorage.removeItem("user");
+  window.dispatchEvent(new Event("profileUpdated"));
     setIsLoggedIn(false);
 
     // Redirect to login page

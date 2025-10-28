@@ -14,9 +14,11 @@ interface OrderItem {
 }
 
 interface Order {
-  _id: string;
+  id?: string;
+  _id?: string;
   user: {
-    _id: string;
+    id?: string;
+    _id?: string;
     userName: string;
     email: string;
   };
@@ -99,9 +101,11 @@ export default function OrderPage() {
   if (error) return <div className="alert alert-error">{error}</div>;
   if (!order) return <div>Order not found</div>;
 
+  const orderId = order.id || order._id || 'unknown';
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">Order {order._id}</h1>
+      <h1 className="text-2xl font-bold mb-4">Order {orderId}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">

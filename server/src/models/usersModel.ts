@@ -42,5 +42,17 @@ const UserSchema = new Schema(
 		timestamps: true,
 	}
 );
+
+// Response shaping: remove sensitive fields and normalize id
+UserSchema.set('toJSON', {
+	virtuals: true,
+	versionKey: false,
+	transform: (_doc, ret: any) => {
+		ret.id = ret._id;
+		delete ret._id;
+		delete ret.password; // never expose password
+		return ret;
+	}
+});
 const User = mongoose.model<IUser>("User", UserSchema);
 export default User;
