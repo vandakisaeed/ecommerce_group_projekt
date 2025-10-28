@@ -6,6 +6,24 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Nav() {
+  const getInitialTheme = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') || 'light';
+    }
+    return 'light';
+  };
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
   const [user, setUser] = useState(null);
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
@@ -70,12 +88,12 @@ export default function Nav() {
   };
 
   return (
-    <div className="navbar bg-base-100 shadow-sm">
+  <div className="navbar bg-base-100 shadow-lg backdrop-blur-md bg-opacity-80 transition-all duration-300 rounded-xl mx-2 mt-2">
       <div className="flex-1">
-        <Link href="/" className="btn btn-ghost text-xl">Home</Link>
+        <Link href="/" className="btn btn-ghost text-xl font-extrabold tracking-tight">Buy Buy Beyond</Link>
       </div>
-      <div className="flex-none">
-        <div className="dropdown dropdown-end">
+  <div className="flex-none flex items-center gap-2">
+  <div className="dropdown dropdown-end">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
             <div className="indicator">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,6 +115,17 @@ export default function Nav() {
           </div>
         </div>
         
+        <button
+          className="btn btn-circle btn-ghost"
+          aria-label="Toggle dark mode"
+          onClick={toggleTheme}
+        >
+          {theme === 'dark' ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m8.66-8.66l-.71.71M4.05 4.05l-.71.71M21 12h-1M4 12H3m16.24 4.24l-.71-.71M6.34 17.66l-.71-.71" /></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" /></svg>
+          )}
+        </button>
         {!user ? (
           <div className="flex gap-2">
             <Link href="/login" className="btn btn-ghost">Login</Link>
@@ -105,7 +134,7 @@ export default function Nav() {
         ) : (
           <div className="dropdown dropdown-end">
             <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
-              <div className="w-10 rounded-full overflow-hidden">
+              <div className="w-10 rounded-full overflow-hidden border-2 border-primary shadow">
                 <Image
                   alt="User avatar"
                   src={user.image || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
