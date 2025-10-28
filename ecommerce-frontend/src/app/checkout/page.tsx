@@ -3,6 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface CartItem {
+  id: string | number;
+  name?: string;
+  title?: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
 interface ShippingAddress {
   address: string;
   city: string;
@@ -23,11 +32,11 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
 
   // Get cart items and user from localStorage
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const cart: CartItem[] = JSON.parse(localStorage.getItem('cart') || '[]');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const calculateTotals = () => {
-    const subtotal = cart.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((acc: number, item: CartItem) => acc + (item.price * item.quantity), 0);
     const taxRate = 0.19; // 19% VAT
     const taxPrice = subtotal * taxRate;
     const shippingPrice = subtotal > 50 ? 0 : 10; // Free shipping over €50
@@ -52,13 +61,13 @@ export default function CheckoutPage() {
       return;
     }
 
-    const { subtotal, taxPrice, shippingPrice, totalPrice } = calculateTotals();
+  const { taxPrice, shippingPrice, totalPrice } = calculateTotals();
 
     try {
       const orderData = {
         userId: user.id,
-        orderItems: cart.map((item: any) => ({
-          name: item.title,
+        orderItems: cart.map((item: CartItem) => ({
+          name: item.name || item.title || '', // Handle both name and title properties
           qty: item.quantity,
           image: item.image,
           price: item.price,
@@ -79,11 +88,13 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData)
       });
 
+      const data = await res.json();
+      
       if (!res.ok) {
-        throw new Error('Failed to create order');
+        throw new Error(data.message || 'Failed to create order');
       }
 
-      const { order } = await res.json();
+      const { order } = data;
 
       // Clear cart
       localStorage.setItem('cart', '[]');
@@ -204,9 +215,9 @@ export default function CheckoutPage() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
           <div className="card bg-base-200 p-4">
-            {cart.map((item: any) => (
+            {cart.map((item: CartItem) => (
               <div key={item.id} className="flex justify-between mb-2">
-                <span>{item.title} × {item.quantity}</span>
+                <span>{item.title || item.name} × {item.quantity}</span>
                 <span>€{(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}

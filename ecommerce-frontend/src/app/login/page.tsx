@@ -4,6 +4,23 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+interface User {
+  id: string;
+  email: string;
+  userName?: string;
+}
+
+interface LoginResponse {
+  user: User;
+  message?: string;
+  debug?: string;
+}
+
+interface ApiError extends Error {
+  status?: number;
+  debug?: string;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,21 +61,22 @@ export default function LoginPage() {
         throw new Error(text || `Login failed with ${res.status}`);
       }
 
-      const data = await res.json();
+      const data = await res.json() as LoginResponse;
       if (data.user) {
         // Server sets httpOnly cookies for tokens; don't store token client-side
         console.log("✅ Login successful", data);
         localStorage.setItem("user", JSON.stringify(data.user));
 
         setIsLoggedIn(true);
-        setEmail(data.user.email || email);
+        setEmail(data.user.email);
         //router.push("/");
       } else {
         setError((data.message || "Invalid email or password") + (data.debug ? `\nDebug: ${data.debug}` : ""));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      setError(err.message || "Login failed. Please try again.");
+      const error = err as ApiError;
+      setError(error.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -83,20 +101,21 @@ export default function LoginPage() {
         throw new Error(text || `Update failed with ${res.status}`);
       }
 
-      const data = await res.json();
+      const data = await res.json() as LoginResponse;
       if (data.user) {
         alert("✅ Account updated successfully!");
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        setEmail(data.user.email || newEmail || email);
+        setEmail(data.user.email);
         setPassword("");
         setNewEmail("");
         setNewPassword("");
       } else {
         throw new Error(data.message || "Failed to update account");
       }
-    } catch (err: any) {
-      alert(err.message || "Error updating account");
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      alert(error.message || "Error updating account");
     }
   };
 
@@ -117,11 +136,12 @@ export default function LoginPage() {
       }
 
       // Server returns message on success
-      const storedUser = localStorage.removeItem("user");
+        localStorage.removeItem("user");
       setIsLoggedIn(false);
       router.push("/signup");
-    } catch (err: any) {
-      alert(err.message || "Error deleting account");
+      } catch (err: unknown) {
+        const error = err as ApiError;
+        alert(error.message || "Error deleting account");
     }
   };
   
@@ -135,8 +155,8 @@ export default function LoginPage() {
         credentials: "include",
         body: JSON.stringify({ action: "logout" }), // 👈 send logout action
       });
-    } catch (err) {
-      console.warn("Logout request failed, continuing logout...");
+      } catch (error: unknown) {
+        console.warn("Logout request failed, continuing logout...", error);
     }
 
     // Clear client-side session

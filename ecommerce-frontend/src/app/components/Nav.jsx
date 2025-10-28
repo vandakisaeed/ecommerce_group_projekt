@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 
 export default function Nav() {
   const [user, setUser] = useState(null);
+  const [cartCount, setCartCount] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +26,33 @@ export default function Nav() {
       }
     };
     loadUser();
+  }, []);
+
+  useEffect(() => {
+    const loadCart = () => {
+      try {
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          const cart = JSON.parse(storedCart);
+          const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+          const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          setCartCount(count);
+          setCartTotal(total);
+        } else {
+          setCartCount(0);
+          setCartTotal(0);
+        }
+      } catch (err) {
+        console.error('Error loading cart:', err);
+        setCartCount(0);
+        setCartTotal(0);
+      }
+    };
+    loadCart();
+
+    // Listen for storage events to update cart when it changes
+    window.addEventListener('storage', loadCart);
+    return () => window.removeEventListener('storage', loadCart);
   }, []);
 
   const handleLogout = () => {
@@ -45,13 +74,15 @@ export default function Nav() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span className="badge badge-sm indicator-item">8</span>
+              {cartCount > 0 && (
+                <span className="badge badge-sm indicator-item">{cartCount}</span>
+              )}
             </div>
           </div>
           <div tabIndex={0} className="card card-compact dropdown-content bg-base-100 z-1 mt-3 w-52 shadow">
             <div className="card-body">
-              <span className="text-lg font-bold">8 Items</span>
-              <span className="text-info">Subtotal: $999</span>
+              <span className="text-lg font-bold">{cartCount} {cartCount === 1 ? 'Item' : 'Items'}</span>
+              <span className="text-info">Subtotal: ${cartTotal.toFixed(2)}</span>
               <div className="card-actions">
                 <Link href="/cart"><button className="btn btn-primary btn-block">View cart</button></Link>
               </div>

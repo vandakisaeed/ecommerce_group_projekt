@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { api } from '../config/api';
 
 interface Product {
@@ -137,11 +138,13 @@ export default function Main() {
             key={product.id}
             className="card bg-base-200 shadow-xl hover:shadow-2xl transition"
           >
-            <figure>
-              <img
+            <figure className="relative w-full h-48 p-4">
+              <Image
                 src={product.image}
                 alt={product.title}
-                className="w-full h-48 object-contain p-4"
+                fill
+                className="object-contain"
+                sizes="(max-width: 640px) 100vw, 25vw"
               />
             </figure>
             <div className="card-body text-center">

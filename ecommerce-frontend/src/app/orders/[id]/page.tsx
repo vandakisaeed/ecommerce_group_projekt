@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Image from 'next/image';
 
 interface OrderItem {
   _id: string;
@@ -107,9 +107,17 @@ export default function OrderPage({ params }: { params: { id: string } }) {
             <div className="space-y-4">
               {order.orderItems.map((item) => (
                 <div key={item._id} className="flex items-center space-x-4">
-                  <img src={item.image} alt={item.name} className="w-20 h-20 object-cover" />
+                  <div className="relative w-20 h-20">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </div>
                   <div>
-                    <Link href={`/products/${item.product}`} className="link">{item.name}</Link>
+                    <h3 className="font-semibold">{item.name}</h3>
                     <p>{item.qty} × €{item.price} = €{(item.qty * item.price).toFixed(2)}</p>
                   </div>
                 </div>

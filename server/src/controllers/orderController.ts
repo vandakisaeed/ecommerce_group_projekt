@@ -1,6 +1,34 @@
 import type { Request, Response } from 'express';
 import Order from '../models/ordersModel';
 import User from '../models/usersModel';
+import { Error } from 'mongoose';
+
+interface ValidationError extends Error.ValidationError {
+  errors: {
+    [key: string]: Error.ValidatorError;
+  };
+}
+
+interface CastError extends Error.CastError {
+  value: any;
+  path: string;
+  message: string;
+}
+
+interface OrderItem {
+  name: string;
+  qty: number;
+  image: string;
+  price: number;
+  product: string | number;
+}
+
+interface ShippingAddress {
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
 
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
@@ -21,9 +49,27 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Validate order items
+    if (!orderItems || orderItems.length === 0) {
+      return res.status(400).json({ message: 'No order items provided' });
+    }
+
+    // Validate required fields in shipping address
+    if (!shippingAddress || !shippingAddress.address || !shippingAddress.city || 
+        !shippingAddress.postalCode || !shippingAddress.country) {
+      return res.status(400).json({ message: 'Please provide complete shipping address' });
+    }
+
+    // Map orderItems to use the external product ID as a string
+    const mappedOrderItems = orderItems.map((item: OrderItem) => ({
+      ...item,
+      product: `external_${item.product}` // Prefix external IDs to distinguish them
+    }));
+
+    // Create the order with mapped items
     const order = await Order.create({
       user: userId,
-      orderItems,
+      orderItems: mappedOrderItems,
       shippingAddress,
       paymentMethod,
       taxPrice,
@@ -35,9 +81,33 @@ export const createOrder = async (req: Request, res: Response) => {
       message: 'Order created successfully',
       order
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Create order error:', error);
-    res.status(500).json({ message: 'Error creating order' });
+    
+    // Handle mongoose validation errors
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as ValidationError;
+      const messages = Object.values(validationError.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: 'Invalid order data', 
+        details: messages 
+      });
+    }
+    
+    // Handle invalid ObjectId errors
+    if (error instanceof Error && error.name === 'CastError') {
+      const castError = error as CastError;
+      return res.status(400).json({ 
+        message: 'Invalid ID format',
+        details: castError.message 
+      });
+    }
+    
+    const message = error instanceof Error ? error.message : 'An unknown error occurred';
+    res.status(500).json({ 
+      message: 'Error creating order',
+      details: message 
+    });
   }
 };
 
@@ -51,9 +121,13 @@ export const getUserOrders = async (req: Request, res: Response) => {
       .populate('user', 'userName email'); // Include user details
 
     res.json(orders);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Get user orders error:', error);
-    res.status(500).json({ message: 'Error fetching orders' });
+    const message = error instanceof Error ? error.message : 'An unknown error occurred';
+    res.status(500).json({ 
+      message: 'Error fetching orders',
+      details: message 
+    });
   }
 };
 
@@ -63,17 +137,20 @@ export const getOrderById = async (req: Request, res: Response) => {
     const { orderId } = req.params;
 
     const order = await Order.findById(orderId)
-      .populate('user', 'userName email')
-      .populate('orderItems.product', 'name price');
+      .populate('user', 'userName email');
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
     res.json(order);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Get order error:', error);
-    res.status(500).json({ message: 'Error fetching order' });
+    const message = error instanceof Error ? error.message : 'An unknown error occurred';
+    res.status(500).json({ 
+      message: 'Error fetching order',
+      details: message 
+    });
   }
 };
 
@@ -94,8 +171,12 @@ export const updateOrderToPaid = async (req: Request, res: Response) => {
 
     const updatedOrder = await order.save();
     res.json(updatedOrder);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Update order error:', error);
-    res.status(500).json({ message: 'Error updating order' });
+    const message = error instanceof Error ? error.message : 'An unknown error occurred';
+    res.status(500).json({ 
+      message: 'Error updating order',
+      details: message 
+    });
   }
 };
