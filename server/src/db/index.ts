@@ -1,24 +1,18 @@
-// Allowed access from all IP's currentlly because of mobile Hotspot
-
-// single file for Db Connectin details
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-// try catch block around db connection
-try {
-	// check for variale first because of typescript
-	if (process.env.DBConnectionString) {
-		// await establish connection with env variable
-		await mongoose.connect(process.env.DBConnectionString);
-		// log succesfully connection to console
-		console.log("Mongo DB connection established");
-	} else {
-		// no Connection string == Error
-		throw new Error("No Db Connection string provided in .env file.");
-	}
-} catch (error) {
-	// catch occuring errors
-	console.error("MongoDB connection error: ", error);
-}
-// export whole thing
-// no need to store in variable or anything else
-export {};
+dotenv.config();
+
+const mongoURL = process.env.DBConnectionString || "mongodb://localhost:27017/ecommerce";
+
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGODB_URI as string);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error);
+    process.exit(1);
+  }
+};
+
+export default connectDB;

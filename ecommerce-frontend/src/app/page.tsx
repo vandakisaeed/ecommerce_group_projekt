@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { api } from '../config/api';
 
 interface Product {
   id: number;
@@ -22,7 +23,7 @@ export default function Main() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("http://localhost:4000/products");
+        const res = await fetch(api.endpoints.products);
         const data = await res.json();
         setProducts(data);
       } catch (error) {
@@ -47,9 +48,10 @@ export default function Main() {
     });
 
     try {
-      await fetch("http://localhost:4000/api/cart", {
+      await fetch(api.endpoints.cart, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include', // Important for cookies
         body: JSON.stringify({ product }),
       });
     } catch (err) {

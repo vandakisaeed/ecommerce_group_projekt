@@ -1,10 +1,15 @@
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch"; // optional if Node <18
+import connectDB from "#db";
 
 const app = express();
 
-app.use(cors()); // allow requests from frontend
+// Enable CORS for frontend
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Next.js default port
+  credentials: true // Enable credentials (cookies, authorization headers)
+}));
 app.use(express.json());
 
 // Fetch products route
@@ -38,5 +43,5 @@ app.delete("/api/cart", (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
