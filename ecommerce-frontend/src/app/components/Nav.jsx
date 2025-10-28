@@ -19,13 +19,20 @@ export default function Nav() {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser?.id) {
             setUser(parsedUser);
+          } else {
+            setUser(null);
           }
+        } else {
+          setUser(null);
         }
       } catch (err) {
         console.error('Error loading user data:', err);
+        setUser(null);
       }
     };
     loadUser();
+    window.addEventListener('storage', loadUser);
+    return () => window.removeEventListener('storage', loadUser);
   }, []);
 
   useEffect(() => {
