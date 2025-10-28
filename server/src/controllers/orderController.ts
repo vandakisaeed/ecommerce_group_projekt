@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Order from '../models/ordersModel';
 import User from '../models/usersModel';
 import { Error } from 'mongoose';
@@ -136,8 +137,12 @@ export const getOrderById = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
 
-    const order = await Order.findById(orderId)
-      .populate('user', 'userName email');
+    // Validate orderId to avoid CastError when it's undefined or not a valid ObjectId
+    if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ message: 'Invalid order id' });
+    }
+
+    const order = await Order.findById(orderId).populate('user', 'userName email');
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });

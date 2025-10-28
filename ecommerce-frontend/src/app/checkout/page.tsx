@@ -94,7 +94,13 @@ export default function CheckoutPage() {
         throw new Error(data.message || 'Failed to create order');
       }
 
-      const { order } = data;
+      const { order } = data as { order?: { _id?: string } };
+
+      if (!order || !order._id) {
+        console.error('Order creation response missing order id:', data);
+        setError(data.message || 'Order created but no order id returned');
+        return;
+      }
 
       // Clear cart
       localStorage.setItem('cart', '[]');

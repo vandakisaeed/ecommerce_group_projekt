@@ -67,9 +67,9 @@ export default function LoginPage() {
         console.log("✅ Login successful", data);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        setIsLoggedIn(true);
-        setEmail(data.user.email);
-        //router.push("/");
+  setIsLoggedIn(true);
+  setEmail(data.user.email);
+  router.push("/");
       } else {
         setError((data.message || "Invalid email or password") + (data.debug ? `\nDebug: ${data.debug}` : ""));
       }
