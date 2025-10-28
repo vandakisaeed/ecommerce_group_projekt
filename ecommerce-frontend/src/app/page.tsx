@@ -27,7 +27,15 @@ export default function Main() {
       try {
         const res = await fetch(api.endpoints.products);
         const data = await res.json();
-        setProducts(data);
+        // Defensive: ensure the response is an array before setting products
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else if (Array.isArray((data as { products?: Product[] }).products)) {
+          setProducts((data as { products?: Product[] }).products || []);
+        } else {
+          console.error('Unexpected products response shape:', data);
+          setProducts([]);
+        }
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -47,8 +55,9 @@ export default function Main() {
         );
       }
       const newCart = [...prevCart, { ...product, quantity: 1 }];
-      // Save cart to localStorage
+      // Save cart to localStorage and notify other parts of the app
       localStorage.setItem('cart', JSON.stringify(newCart));
+      window.dispatchEvent(new Event('cartUpdated'));
       return newCart;
     });
 
@@ -66,13 +75,14 @@ export default function Main() {
 
   // Remove from cart
   const removeFromCart = async (id: number) => {
-    setCart((prevCart) =>
-      prevCart
-        .map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
+    setCart((prevCart) => {
+      const updated = prevCart
+        .map((item) => (item.id === id ? { ...item, quantity: item.quantity - 1 } : item))
+        .filter((item) => item.quantity > 0);
+      localStorage.setItem('cart', JSON.stringify(updated));
+      window.dispatchEvent(new Event('cartUpdated'));
+      return updated;
+    });
 
     try {
       await fetch("http://localhost:4000/api/cart", {

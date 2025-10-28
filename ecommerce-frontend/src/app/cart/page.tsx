@@ -5,8 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 interface CartItem {
-  id: string;
-  name: string;
+  id: string | number;
+  name?: string;
+  title?: string;
   price: number;
   image: string;
   quantity: number;
@@ -44,6 +45,8 @@ export default function Cart() {
 
     setCartItems(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
+  // Notify other UI (navbar) in same tab
+  window.dispatchEvent(new Event('cartUpdated'));
 
     // Update total
     const newTotal = updatedCart.reduce((sum, item) => 
@@ -55,6 +58,8 @@ export default function Cart() {
     const updatedCart = cartItems.filter(item => item.id !== itemId);
     setCartItems(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
+    // Notify other UI (navbar) in same tab
+    window.dispatchEvent(new Event('cartUpdated'));
 
     // Update total
     const newTotal = updatedCart.reduce((sum, item) => 
@@ -77,24 +82,27 @@ export default function Cart() {
     <div className="min-h-screen p-4 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Shopping Cart</h1>
       <div className="flex flex-col gap-4">
-        {cartItems.map((item) => (
-          <div key={item.id} className="card card-side bg-base-100 shadow-xl">
+        {cartItems.map((item) => {
+          const displayName = item.name || item.title || 'Untitled product';
+          const itemId = item.id;
+          return (
+          <div key={itemId} className="card card-side bg-base-100 shadow-xl">
             <figure className="w-48 h-48 relative">
               <Image
                 src={item.image}
-                alt={item.name}
+                alt={displayName}
                 fill
                 style={{ objectFit: 'cover' }}
               />
             </figure>
             <div className="card-body">
-              <h2 className="card-title">{item.name}</h2>
+              <h2 className="card-title">{displayName}</h2>
               <p className="text-xl">${item.price.toFixed(2)}</p>
               <div className="flex items-center gap-4">
                 <div className="join">
                   <button 
                     className="btn join-item"
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    onClick={() => updateQuantity(itemId as string, item.quantity - 1)}
                   >
                     -
                   </button>
@@ -103,21 +111,22 @@ export default function Cart() {
                   </div>
                   <button 
                     className="btn join-item"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    onClick={() => updateQuantity(itemId as string, item.quantity + 1)}
                   >
                     +
                   </button>
                 </div>
                 <button 
                   className="btn btn-error btn-sm"
-                  onClick={() => removeItem(item.id)}
+                  onClick={() => removeItem(itemId as string)}
                 >
                   Remove
                 </button>
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="divider"></div>

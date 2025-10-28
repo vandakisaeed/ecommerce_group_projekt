@@ -75,9 +75,13 @@ export default function Nav() {
     };
     loadCart();
 
-    // Listen for storage events to update cart when it changes
+    // Listen for storage events (other tabs) and custom cart updates in same tab
     window.addEventListener('storage', loadCart);
-    return () => window.removeEventListener('storage', loadCart);
+    window.addEventListener('cartUpdated', loadCart);
+    return () => {
+      window.removeEventListener('storage', loadCart);
+      window.removeEventListener('cartUpdated', loadCart);
+    };
   }, []);
 
   const handleLogout = () => {

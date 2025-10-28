@@ -103,7 +103,9 @@ export default function CheckoutPage() {
       }
 
       // Clear cart
-      localStorage.setItem('cart', '[]');
+  localStorage.setItem('cart', '[]');
+  // Notify navbar and other listeners in same tab
+  window.dispatchEvent(new Event('cartUpdated'));
       
       // Redirect to order confirmation
       router.push(`/orders/${order._id}`);
