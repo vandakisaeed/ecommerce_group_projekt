@@ -50,7 +50,11 @@ export default function Nav() {
     };
     loadUser();
     window.addEventListener('storage', loadUser);
-    return () => window.removeEventListener('storage', loadUser);
+    window.addEventListener('profileUpdated', loadUser);
+    return () => {
+      window.removeEventListener('storage', loadUser);
+      window.removeEventListener('profileUpdated', loadUser);
+    };
   }, []);
 
   useEffect(() => {
@@ -128,9 +132,21 @@ export default function Nav() {
           onClick={toggleTheme}
         >
           {theme === 'dark' ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m8.66-8.66l-.71.71M4.05 4.05l-.71.71M21 12h-1M4 12H3m16.24 4.24l-.71-.71M6.34 17.66l-.71-.71" /></svg>
+            // Updated light-mode icon shown while in dark mode (sun with rays)
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              {/* Sun core */}
+              <circle cx="12" cy="12" r="4" strokeWidth="2" />
+              {/* Rays */}
+              <path strokeLinecap="round" strokeWidth="2" d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" /></svg>
+            // Updated dark-mode icon shown while in light mode (moon + tiny star)
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              {/* Crescent moon */}
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12.35A8.65 8.65 0 1111.65 3 6.5 6.5 0 0021 12.35z" />
+              {/* Small star */}
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.5 6l.35-1.05L18.2 6l1.05.35L18.2 6.7l-.35 1.05L17.5 6.7l-1.05-.35L17.5 6z" />
+            </svg>
           )}
         </button>
         {!user ? (
@@ -152,12 +168,10 @@ export default function Nav() {
             </label>
             <ul tabIndex={0} className="mt-3 z-1 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
               <li>
-                <a className="justify-between">
+                <Link href="/profile" className="justify-between">
                   Profile
-                  <span className="badge">New</span>
-                </a>
+                </Link>
               </li>
-              <li><a>Settings</a></li>
               <li><a onClick={handleLogout}>Logout</a></li>
             </ul>
           </div>

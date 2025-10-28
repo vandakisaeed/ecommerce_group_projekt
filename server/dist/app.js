@@ -4,6 +4,7 @@ import fetch from "node-fetch"; // optional if Node <18
 import { connectDB } from "./db/index";
 import { signup, login } from "./controllers/authController";
 import { createOrder, getUserOrders, getOrderById, updateOrderToPaid } from "./controllers/orderController";
+import { updateUserProfile, updateUserPassword, updateUserImage } from "./controllers/usersController";
 const app = express();
 // Connect to MongoDB
 connectDB();
@@ -12,13 +13,27 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Next.js default port
     credentials: true // Enable credentials (cookies, authorization headers)
 }));
-app.use(express.json());
+// Increase JSON body limit slightly to allow small base64 avatar uploads
+app.use(express.json({ limit: '2mb' }));
 // Fetch products route
 app.get("/products", async (req, res) => {
     try {
         const response = await fetch("https://fakestoreapi.com/products");
+        // If upstream returned non-OK, capture the body as text for debugging
+        if (!response.ok) {
+            const text = await response.text();
+            console.error(`Upstream products fetch failed: ${response.status} - ${text.slice(0, 1000)}`);
+            return res.status(502).json({ error: 'Failed to fetch products from upstream', status: response.status, details: text });
+        }
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            // Upstream returned HTML or something else — log first chunk and return a safe error
+            const text = await response.text();
+            console.error('Upstream products fetch returned non-JSON response:', text.slice(0, 1000));
+            return res.status(502).json({ error: 'Upstream returned non-JSON for products', details: text.slice(0, 1000) });
+        }
         const data = await response.json();
-        res.json(data);
+        return res.json(data);
     }
     catch (error) {
         console.error("Error fetching products:", error);
@@ -44,6 +59,10 @@ app.post("/api/orders", createOrder);
 app.get("/api/orders/user/:userId", getUserOrders);
 app.get("/api/orders/:orderId", getOrderById);
 app.put("/api/orders/:orderId/pay", updateOrderToPaid);
+// User profile routes
+app.put("/api/users/:id/profile", updateUserProfile);
+app.put("/api/users/:id/password", updateUserPassword);
+app.put("/api/users/:id/image", updateUserImage);
 app.post("/api/cart", (req, res) => {
     const { product } = req.body;
     const existing = cart.find((item) => item.id === product.id);
