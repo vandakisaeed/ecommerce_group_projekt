@@ -213,7 +213,7 @@ export default function LoginPage() {
           ) : (
             <>
               <h2 className="text-2xl font-bold text-center mb-6">
-                Welcome, {email}
+                Welcome... {email}
               </h2>
 
               <div className="form-control mb-3">
@@ -242,6 +242,15 @@ export default function LoginPage() {
                 />
               </div>
 
+
+              <button
+  className="btn btn-primary w-full mb-3"
+  onClick={() => router.push("/")}
+>
+  Home
+</button>
+
+
               <button className="btn btn-success w-full mb-3" onClick={handleUpdate}>
                 Update Account
               </button>
@@ -260,3 +269,16 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
