@@ -26,7 +26,7 @@ export default function SignupPage() {
 
     try {
       // Signup: server expects POST with action: 'signup'
-      const res = await fetch("/api/auth_server", {
+      const res = await fetch("http://localhost:4000/auth_server/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "signup", userName: name, email, password }),

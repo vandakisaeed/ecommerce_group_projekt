@@ -25,6 +25,9 @@ export default function Main() {
         const res = await fetch("http://localhost:4000/products");
         const data = await res.json();
         setProducts(data);
+        const storedCart = localStorage.getItem("cart");
+        if (storedCart) setCart(JSON.parse(storedCart));
+        window.dispatchEvent(new Event("cartUpdated"));// 👈 notify other components
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -32,50 +35,39 @@ export default function Main() {
       }
     }
     fetchProducts();
-  }, []);
+  }, [cart]);
 
   // Add to cart
   const addToCart = async (product: Product) => {
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.id === product.id);
-      if (existing) {
-        return prevCart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prevCart, { ...product, quantity: 1 }];
-    });
+      const updatedCart = (() => {
+        const existing = prevCart.find((item) => item.id === product.id);
+        if (existing) {
+          return prevCart.map((item) =>
+            item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          );
+        }
+        return [...prevCart, { ...product, quantity: 1 }];
+      })();
 
-    try {
-      await fetch("http://localhost:4000/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product }),
-      });
-    } catch (err) {
-      console.error("Failed to sync cart:", err);
-    }
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      return updatedCart;
+    });
+    
   };
 
   // Remove from cart
   const removeFromCart = async (id: number) => {
-    setCart((prevCart) =>
-      prevCart
-        .map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
+   setCart((prevCart) => {
+  const updatedCart = prevCart
+    .map((item) =>
+      item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+    )
+    .filter((item) => item.quantity > 0);
 
-    try {
-      await fetch("http://localhost:4000/api/cart", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: { id } }),
-      });
-    } catch (err) {
-      console.error("Failed to sync cart:", err);
-    }
+  localStorage.setItem("cart", JSON.stringify(updatedCart));
+  return updatedCart;
+});
   };
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);

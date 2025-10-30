@@ -4,6 +4,21 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+
+import { create } from "zustand";
+
+interface AuthState {
+  isLoggedIn: boolean;
+  setIsLoggedIn: (value: boolean) => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  isLoggedIn: false,
+  setIsLoggedIn: (value) => set({ isLoggedIn: value }),
+}));
+
+
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,9 +26,12 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  //const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
+ const { isLoggedIn, setIsLoggedIn } = useAuthStore(); // ✅ Zustand state
 
+
+ 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -22,6 +40,7 @@ export default function LoginPage() {
       setIsLoggedIn(true);
     }
   }, [router]);
+   
 
 
 
@@ -32,7 +51,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth_server", {
+      const res = await fetch("http://localhost:4000/auth_server/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "login", email, password }),
@@ -60,76 +79,68 @@ export default function LoginPage() {
       console.error("Login error:", err);
       setError(err.message || "Login failed. Please try again.");
     } finally {
+      router.push('/')
       setLoading(false);
     }
   };
 
   // Update user
-  const handleUpdate = async () => {
-    try {
-      // Use cookie-based auth; server verifies accessToken cookie
-      const res = await fetch("/api/auth_server", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          email: newEmail || email,
-          password: newPassword || password,
-        }),
-      });
+const handleUpdate = async () => {
+  try {
+    const res = await fetch("http://localhost:4000/auth_server/update", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        email: newEmail || email,
+        password: newPassword || password,
+      }),
+    });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `Update failed with ${res.status}`);
-      }
+    if (!res.ok) throw new Error(await res.text());
 
-      const data = await res.json();
-      if (data.user) {
-        alert("✅ Account updated successfully!");
-        localStorage.setItem("user", JSON.stringify(data.user));
+    const data = await res.json();
+    alert("✅ Account updated successfully!");
 
-        setEmail(data.user.email || newEmail || email);
-        setPassword("");
-        setNewEmail("");
-        setNewPassword("");
-      } else {
-        throw new Error(data.message || "Failed to update account");
-      }
-    } catch (err: any) {
-      alert(err.message || "Error updating account");
-    }
-  };
+    localStorage.setItem("user", JSON.stringify(data.user));
+    setEmail(data.user.email);
+    setNewEmail("");
+    setNewPassword("");
+  } catch (err: any) {
+    alert(err.message || "Error updating account");
+  }
+};
+
 
   // Delete user
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete your account?")) return;
+const handleDelete = async () => {
+  const password = prompt("Enter your password to confirm deletion:");
+  if (!password) return;
 
-    try {
-      // Logout (server deletes refresh token). Account deletion endpoint is not implemented.
-      const res = await fetch("/api/auth_server", {
-        method: "DELETE",
-        credentials: "include",
-      });
+  try {
+    const res = await fetch("http://localhost:4000/auth_server/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ password }),
+    });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `Logout failed with ${res.status}`);
-      }
+    if (!res.ok) throw new Error(await res.text());
 
-      // Server returns message on success
-      const storedUser = localStorage.removeItem("user");
-      setIsLoggedIn(false);
-      router.push("/signup");
-    } catch (err: any) {
-      alert(err.message || "Error deleting account");
-    }
-  };
+    alert("Account deleted successfully");
+    localStorage.removeItem("user");
+    router.push("/signup");
+  } catch (err: any) {
+    alert(err.message || "Error deleting account");
+  }
+};
+
   
   // ✅ Sign out (only logs out, does NOT delete user)
   const handleSignOut = async () => {
     try {
       // Call backend to clear cookies or refresh tokens
-      await fetch("/api/auth_server", {
+      await fetch("http://localhost:4000/auth_server/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

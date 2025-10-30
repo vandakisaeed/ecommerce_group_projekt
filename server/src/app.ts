@@ -1,42 +1,32 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch"; // optional if Node <18
-
+import cookieParser from "cookie-parser"; // important for reading cookies
+import { Productrouter, authRouter ,orderRouter} from "#routes";
+import { mongoDBConnect } from "./db/index";
 const app = express();
 
-app.use(cors()); // allow requests from frontend
+app.use(cookieParser());
 app.use(express.json());
+mongoDBConnect()
+// ✅ CORS FIX:
+app.use(cors({
+  origin: "http://localhost:3001",  // your Next.js frontend URL
+  credentials: true,                // allow cookies and authorization headers
+}));
 
-// Fetch products route
-app.get("/products", async (req, res) => {
-  try {
-    const response = await fetch("https://fakestoreapi.com/products");
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).json({ error: "Failed to fetch products" });
-  }
+// ✅ Routes
+app.use("/auth_server", authRouter);
+app.use("/products", Productrouter);
+app.use("/orders", orderRouter);
+
+
+// ✅ 404 fallback
+app.use(/.*/, (req, res) => {
+  res.status(404).json({
+    error: "Route not found",
+    message: `The requested endpoint ${req.originalUrl} does not exist`,
+  });
 });
 
-// Optional cart route (for add/remove simulation)
-let cart: any[] = [];
-
-app.post("/api/cart", (req, res) => {
-  const { product } = req.body;
-  const existing = cart.find((item) => item.id === product.id);
-  if (existing) existing.quantity += 1;
-  else cart.push({ ...product, quantity: 1 });
-  res.json({ success: true, cart });
-});
-
-app.delete("/api/cart", (req, res) => {
-  const { product } = req.body;
-  cart = cart.filter((item) => item.id !== product.id);
-  res.json({ success: true, cart });
-});
-
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
-});
+const PORT = 4000;
+app.listen(PORT, () => console.log(`✅ Backend running at http://localhost:${PORT}`));
