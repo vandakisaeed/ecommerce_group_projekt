@@ -47,7 +47,7 @@ export default function Nav() {
         <Link href="/about" className="btn btn-ghost text-xl">About</Link>
         <Link href="/login" className="btn btn-ghost text-xl">Login</Link>
         <Link href="/signup" className="btn btn-ghost text-xl">Signup</Link>
-        {/* <Link href="/ai" className="btn btn-ghost text-xl">AI</Link> */}
+        <Link href="/ai" className="btn btn-ghost text-xl">AI</Link>
         {isLoggedIn?(
 
           <Link href="/dbProducts" className="btn btn-ghost text-xl">Products</Link>

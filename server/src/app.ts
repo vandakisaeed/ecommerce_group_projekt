@@ -1,8 +1,11 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser"; // important for reading cookies
-import { Productrouter, authRouter ,orderRouter} from "#routes";
+import { Productrouter, authRouter ,orderRouter,aiRouter} from "#routes";
 import { mongoDBConnect } from "./db/index";
+import dotenv from "dotenv";
+dotenv.config();
+
 const app = express();
 
 app.use(cookieParser());
@@ -10,7 +13,7 @@ app.use(express.json());
 mongoDBConnect()
 // ✅ CORS FIX:
 app.use(cors({
-  origin: "http://localhost:3001",  // your Next.js frontend URL
+  origin: "http://localhost:3000",  // your Next.js frontend URL
   credentials: true,                // allow cookies and authorization headers
 }));
 
@@ -18,6 +21,8 @@ app.use(cors({
 app.use("/auth_server", authRouter);
 app.use("/products", Productrouter);
 app.use("/orders", orderRouter);
+
+app.use("/ask", aiRouter);
 
 
 // ✅ 404 fallback

@@ -2,8 +2,9 @@ import express from "express";
 import "dotenv/config";
 import OpenAI from "openai";
 
+// Allow using either GEMINI_API_KEY or OPENAI_API_KEY (fall back)
 const openai = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY ?? process.env.OPENAI_API_KEY,
 });
 
 export const ai = async (req: any, res: any) => {

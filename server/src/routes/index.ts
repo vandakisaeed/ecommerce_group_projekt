@@ -6,3 +6,4 @@ export * from './UsersRoutes.js';
 export { authRouter } from './AuthRoutes.js';
 export * from './productsRoute.js';
 export * from './orderRoute.js';
+export * from './ai.js';
