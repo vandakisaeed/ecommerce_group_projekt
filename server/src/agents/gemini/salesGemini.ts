@@ -1,9 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { z } from "zod";
+import { getModelConfig  } from "./configGemini.ts";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export async function salesAgentGemini(query: string) {
+  const modelai = getModelConfig()
   const systemInstructions = `
 You are a sales specialist for CloudPillow Co.
 Your role:
@@ -27,7 +29,7 @@ Return your answer ONLY in JSON format:
 
   try {
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: modelai as string,
       contents: [{ role: "user", parts: [{ text: query }] }],
       config: {
         systemInstruction: systemInstructions,

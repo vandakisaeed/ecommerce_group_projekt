@@ -11,6 +11,7 @@ import {} from '@google/genai'
 import { orchestratorAgent, initializeAgentClient, InputGuardrailTripwireTriggered } from '#agents';
 import {runOrchestrator} from '../agents/gemini/orchestratorGemini'
 import { type AgentProvider} from '#agents';
+import {fitnessOrchestrator} from '#agents'
 // Initialize the agent client on module load
 // This sets up the OpenAI client for all agents to use
 //[provider, setProvider] = useState<string | undefined>();
@@ -47,7 +48,7 @@ export const createCustomerSupportCompletion: RequestHandler<
 > = async (req, res) => {
   const { provider, prompt } = req.body as { prompt: string; provider: AgentProvider };
   
-if (provider==='openai' || 'ollama'){
+if (provider === 'openai' || provider === 'ollama'){
     try {
     console.log('\x1b[36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m');
     console.log(`\x1b[36m🤖 Customer Support Request: "${prompt}"\x1b[0m`);
@@ -55,14 +56,17 @@ if (provider==='openai' || 'ollama'){
     console.log('📥 Raw request body:', req.body);
     console.log('📥 Provider type:', typeof provider, provider);
     console.log('📥 Prompt type:', typeof prompt, prompt);
+    console.log('after init agent ');
     console.log('\x1b[36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m');
 
     initializeAgentClient(provider);
 
 
-    const result = await run(orchestratorAgent(provider), prompt );
+    //const result = await run(orchestratorAgent(provider), prompt );
+    
+    const result = await run(fitnessOrchestrator(provider), prompt );
 
-
+    
 
 
 
@@ -115,16 +119,19 @@ if (provider==='openai' || 'ollama'){
     initializeAgentClient(provider);
 
         // For Gemini, run the orchestrator directly
+
+    
     const result = await runOrchestrator(prompt);
 
     console.log(result)
     console.log('\x1b[32m✓ Agent completed successfully\x1b[0m');
     console.log('\x1b[36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m\n');
+  const text = result.response;
 
     // Return successful response
     res.status(200).json({
       success: true,
-      response: result.finalOutput || 'No response generated'
+      response: text || 'No response generated'
     });
   } catch (error: unknown) {
     // Handle guardrail failures (off-topic queries)

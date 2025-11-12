@@ -5,6 +5,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { createSupportTicket } from "#utils";
+import { getModelConfig  } from "./configGemini.ts";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -13,6 +14,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
  * responds with empathy, and optionally creates a support ticket.
  */
 export async function escalationAgentGemini(query: string, p0: string) {
+  const modelai = getModelConfig()
   const systemInstructions = `
 You are an escalation specialist for CloudPillow Co.
 
@@ -43,7 +45,7 @@ If escalation is not needed:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: modelai as string,
       contents: [{ role: "user", parts: [{ text: query }] }],
       config: {
         systemInstruction: systemInstructions,

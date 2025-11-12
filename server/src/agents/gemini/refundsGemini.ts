@@ -1,4 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import { getModelConfig  } from "./configGemini.ts";
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 /**
@@ -43,6 +45,7 @@ const processRefundTool = {
  * Gemini Refunds Agent
  */
 export async function refundsAgentGemini(query: string) {
+  const modelai = getModelConfig()
   const systemInstructions = `
 You are a refunds and returns specialist for CloudPillow Co.
 Handle returns, refunds, and warranty claims professionally.
@@ -64,7 +67,7 @@ Approach:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: modelai as string,
       contents: [{ role: "user", parts: [{ text: query }] }],
       config: {
         systemInstruction: systemInstructions,

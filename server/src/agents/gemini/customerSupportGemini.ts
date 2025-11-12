@@ -4,6 +4,7 @@
  */
 
 import { GoogleGenAI } from "@google/genai";
+import { getModelConfig  } from "./configGemini.ts";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -11,6 +12,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
  * Responds to customer support queries about CloudPillow Co.
  */
 export async function customerSupportAgentGemini(query: string) {
+  const modelai = getModelConfig()
   const systemInstructions = `
 You are a friendly and helpful customer support representative for CloudPillow Co.,
 a company that sells premium cloud-soft pillows with a lifetime warranty.
@@ -41,7 +43,7 @@ Your entire reply must be in JSON with this format:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // fast + affordable for customer responses
+      model: modelai as string, // fast + affordable for customer responses
       contents: [{ role: "user", parts: [{ text: query }] }],
       config: {
         systemInstruction: systemInstructions,

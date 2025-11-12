@@ -3,6 +3,8 @@ import { refundsAgentGemini } from "./refundsGemini.ts";
 import { customerSupportAgentGemini } from "./customerSupportGemini.ts";
 import { salesAgentGemini } from "./salesGemini.ts";
 import { escalationAgentGemini } from "./escalationGemini.ts";
+import { getModelConfig  } from "./configGemini.ts";
+import { cwd } from "process";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
@@ -60,8 +62,11 @@ async function checkRelevanceGuardrail(query: string): Promise<boolean> {
   `;
 
   try {
+    const modelai = getModelConfig()
+    console.log(modelai)
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // or gemini-2.5-pro
+
+      model: modelai as string, // or gemini-2.5-pro
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
@@ -82,7 +87,7 @@ export async function runOrchestrator(customerQuery: string) {
     console.log('🏁 Orchestrator starting...');
 
   console.log(`Incoming query: "${customerQuery}"`);
-
+   const modelai = getModelConfig()
   // 1️⃣ Guardrail check
   const isRelevant = await checkRelevanceGuardrail(customerQuery);
   if (!isRelevant) {
@@ -104,7 +109,7 @@ Do NOT answer the query yourself. Output MUST call 'routeCustomerQuery'.
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: modelai as string,
       contents: [{ role: "user", parts: [{ text: customerQuery }] }],
       config: {
         systemInstruction: instructions,
