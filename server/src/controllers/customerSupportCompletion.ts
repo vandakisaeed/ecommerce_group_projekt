@@ -48,7 +48,7 @@ export const createCustomerSupportCompletion: RequestHandler<
 > = async (req, res) => {
   const { provider, prompt } = req.body as { prompt: string; provider: AgentProvider };
   
-if (provider === 'openai' || provider === 'ollama'){
+if (provider === 'openai' || provider === 'ollama'){//|| provider==='gemini'
     try {
     console.log('\x1b[36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m');
     console.log(`\x1b[36m🤖 Customer Support Request: "${prompt}"\x1b[0m`);

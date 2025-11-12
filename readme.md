@@ -14,22 +14,19 @@ Agents:
 
 🧱 Guardrail Agent – filters out irrelevant questions
 
-
 User → Orchestrator Agent: "I want a 4-day workout plan"
 Orchestrator → Training Plan Agent: routes query
 Training Plan Agent → Tool (calorie_calculator): calls for calorie estimate
 Tool → Training Plan Agent: returns daily calorie needs
 Training Plan Agent → User: returns personalized plan and advice
 
-
-
 sequenceDiagram
-    participant U as User
-    participant O as OrchestratorAgent
-    participant T as TrainingPlanAgent
-    participant C as CalorieCalculator (Tool)
-    participant API as NewsAPI (External API)
-    
+participant U as User
+participant O as OrchestratorAgent
+participant T as TrainingPlanAgent
+participant C as CalorieCalculator (Tool)
+participant API as NewsAPI (External API)
+
     U->>O: "Can you create me a 4-day workout plan?"
     O->>T: Route query (training related)
     T->>C: Calculate daily calorie burn
@@ -38,27 +35,23 @@ sequenceDiagram
     API-->>T: Returns top 3 fitness articles
     T-->>U: Sends full plan + nutrition tips + links
 
-
-
-
 ✅ This satisfies the “Diagram in Presentation / README” requirement.
 
 ---
 
 ## ✅ Summary Table
 
-| Requirement | Meaning | Your Example |
-|--------------|----------|---------------|
-| Tool Functions | ≥ 2 callable tools (1 external API) | `calorie_calculator`, `fetch_fitness_news` |
-| Fictitious Company | Agents must belong to a company scenario | FitFusion Co. (Personal Trainer Company) |
-| UML Diagram | Visualize the interaction flow | Mermaid diagram (User → Agents → Tools → API) |
-| Diagram in Presentation | Include the UML in final presentation/README | Screenshot or Mermaid block |
+| Requirement             | Meaning                                      | Your Example                                  |
+| ----------------------- | -------------------------------------------- | --------------------------------------------- |
+| Tool Functions          | ≥ 2 callable tools (1 external API)          | `calorie_calculator`, `fetch_fitness_news`    |
+| Fictitious Company      | Agents must belong to a company scenario     | FitFusion Co. (Personal Trainer Company)      |
+| UML Diagram             | Visualize the interaction flow               | Mermaid diagram (User → Agents → Tools → API) |
+| Diagram in Presentation | Include the UML in final presentation/README | Screenshot or Mermaid block                   |
 
 ---
 
 Would you like me to generate a **ready-to-paste UML Mermaid diagram** for your “FitFusion” agent system (based on the exact agents and tools you have)?  
 That way you can directly include it in your README and slides.
-
 
 🏋️‍♂️ FitFusion AI — Multi-Agent Personal Trainer System
 
@@ -79,13 +72,13 @@ An orchestrator for intelligent routing
 FitFusion AI is a fictitious company that provides a “digital personal training studio.”
 The platform is composed of several AI agents, each with a specific domain expertise:
 
-Agent	Description
-🧠 Training Plan Agent	Designs personalized workout plans based on user goals (e.g., strength, endurance, fat loss).
-🥗 Diet Agent	Builds meal plans and fetches nutritional data from an external API (e.g., Nutrition API).
-🛒 Equipment Agent	Helps users find, compare, and purchase gym equipment; can query external shopping APIs.
-📚 Course Management Agent	Manages fitness course enrollment, schedules, and reminders.
-🧱 Guardrail Agent (PillowGuard)	Validates whether a query is relevant to FitFusion services.
-🔥 Escalation Agent	Handles frustration, complaints, or issues needing human attention.
+Agent Description
+🧠 Training Plan Agent Designs personalized workout plans based on user goals (e.g., strength, endurance, fat loss).
+🥗 Diet Agent Builds meal plans and fetches nutritional data from an external API (e.g., Nutrition API).
+🛒 Equipment Agent Helps users find, compare, and purchase gym equipment; can query external shopping APIs.
+📚 Course Management Agent Manages fitness course enrollment, schedules, and reminders.
+🧱 Guardrail Agent (PillowGuard) Validates whether a query is relevant to FitFusion services.
+🔥 Escalation Agent Handles frustration, complaints, or issues needing human attention.
 
 All these are orchestrated by a central Orchestrator Agent that routes each user request intelligently.
 
@@ -107,21 +100,20 @@ The final response is returned to the user.
 Each agent can use tool functions to perform specific operations.
 At least two tools perform external API requests, fulfilling project requirement FR015.
 
-Tool	Description	Used By
-get_nutrition_data(food: string)	Fetches calorie and macronutrient data from an external Nutrition API	Diet Agent
-fetch_equipment_price(item: string)	Fetches live price and availability info from a shopping API	Equipment Agent
-generate_workout_plan(level: string, days: number)	Creates structured training schedules	Training Agent
-manage_course_enrollment(course: string)	Registers or removes user from course database	Course Agent
-
+Tool Description Used By
+get_nutrition_data(food: string) Fetches calorie and macronutrient data from an external Nutrition API Diet Agent
+fetch_equipment_price(item: string) Fetches live price and availability info from a shopping API Equipment Agent
+generate_workout_plan(level: string, days: number) Creates structured training schedules Training Agent
+manage_course_enrollment(course: string) Registers or removes user from course database Course Agent
 
 🧩 Example Agent Interaction Flow
 sequenceDiagram
-    participant U as User
-    participant O as OrchestratorAgent
-    participant G as GuardrailAgent
-    participant D as DietAgent
-    participant N as NutritionAPI
-    participant E as EscalationAgent
+participant U as User
+participant O as OrchestratorAgent
+participant G as GuardrailAgent
+participant D as DietAgent
+participant N as NutritionAPI
+participant E as EscalationAgent
 
     U->>O: "Create a high-protein meal plan"
     O->>G: Check if query is fitness-related
@@ -141,8 +133,8 @@ npx ts-node src/test/test-training-agent.ts
 
 Example API Test
 curl -X POST http://localhost:4000/api/agent \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"Design a 3-day full-body workout plan","provider":"openai"}'
+ -H "Content-Type: application/json" \
+ -d '{"prompt":"Design a 3-day full-body workout plan","provider":"openai"}'
 
 🧠 Technologies Used
 
@@ -164,25 +156,25 @@ External APIs (Nutrition API, Shopping API)
 
 🧱 Repository Structure
 src/
- ├── agents/
- │    ├── trainingAgent.ts
- │    ├── dietAgent.ts
- │    ├── equipmentAgent.ts
- │    ├── courseAgent.ts
- │    ├── escalationAgent.ts
- │    └── guardrailAgent.ts
- ├── orchestrator/
- │    └── orchestrator.ts
- ├── utils/
- │    ├── apiHelpers.ts
- │    └── calculateDiscount.ts
- ├── config/
- │    └── config.ts
- ├── test/
- │    ├── test-agent.ts
- │    ├── test-training-agent.ts
- │    └── test-diet-agent.ts
- └── server.ts
+├── agents/
+│ ├── trainingAgent.ts
+│ ├── dietAgent.ts
+│ ├── equipmentAgent.ts
+│ ├── courseAgent.ts
+│ ├── escalationAgent.ts
+│ └── guardrailAgent.ts
+├── orchestrator/
+│ └── orchestrator.ts
+├── utils/
+│ ├── apiHelpers.ts
+│ └── calculateDiscount.ts
+├── config/
+│ └── config.ts
+├── test/
+│ ├── test-agent.ts
+│ ├── test-training-agent.ts
+│ └── test-diet-agent.ts
+└── server.ts
 
 🧩 Features
 
@@ -199,15 +191,15 @@ src/
 Include this diagram in your README or presentation:
 
 sequenceDiagram
-    participant User
-    participant Orchestrator
-    participant Guardrail
-    participant TrainingAgent
-    participant DietAgent
-    participant EquipmentAgent
-    participant CourseAgent
-    participant EscalationAgent
-    participant ExternalAPI
+participant User
+participant Orchestrator
+participant Guardrail
+participant TrainingAgent
+participant DietAgent
+participant EquipmentAgent
+participant CourseAgent
+participant EscalationAgent
+participant ExternalAPI
 
     User->>Orchestrator: Send query
     Orchestrator->>Guardrail: Validate relevance
@@ -228,7 +220,6 @@ cd fitfusion-ai
 npm install
 npm run dev
 
-
 Environment variables (in .env):
 
 OPENAI_API_KEY=sk-...
@@ -237,8 +228,7 @@ PORT=4000
 
 🎓 Author
 
-Saeed [Your Last Name]
+Saeed vandaki
 AI Systems Developer | Full-Stack Engineer
-📧 [your.email@example.com
-]
-📍 WBS Coding School — Final Project
+
+📍 WBS Coding School — AI Project
