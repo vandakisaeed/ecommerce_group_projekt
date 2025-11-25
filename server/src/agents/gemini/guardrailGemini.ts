@@ -1,6 +1,6 @@
 /**
  * GUARDRAIL AGENT (Gemini)
- * Validates that customer queries are related to CloudPillow Co. products/services
+ * Validates that customer queries are related to CloudFitness  Co. products/services
  * Acts as a gatekeeper before expensive agent processing
  */
 
@@ -12,13 +12,13 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 export async function guardrailAgentGemini(query: string) {
   const modelai = getModelConfig()
   const systemInstructions = `
-You are the Intent Guardrail for CloudPillow Co.
-You validate if customer questions are about CloudPillow Co. products and services.
+You are the Intent Guardrail for Fitness  Co.
+You validate if customer questions are about Fitness  Co. products and services.
 
-CloudPillow Co. sells premium pillows (memory foam, down, bamboo).
+Fitness  Co. sells premium Fitness s (dream fit, skyfit, speedfit).
 
 RELEVANT topics:
-- Questions about pillows, bedding, sleep products
+- Questions about Fitness , Diet, Workout, gym products
 - Orders, shipping, returns, refunds
 - Product features, prices, materials
 - Warranty, customer support
@@ -70,7 +70,7 @@ Return a JSON object with the following:
     } catch {
       // Fallback in case the model didn't return JSON
       result = {
-        isRelevant: text.toLowerCase().includes("pillow"),
+        isRelevant: text.toLowerCase().includes("Fitness "),
         reasoning: "Heuristic fallback: model did not return JSON.",
       };
     }

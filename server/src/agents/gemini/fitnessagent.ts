@@ -1,24 +1,27 @@
+import z from 'zod';
 import { GoogleGenAI, Type } from "@google/genai";
-import { z } from "zod";
 import { getModelConfig  } from "./configGemini.ts";
+
+import { bmiCalculatorTool, dailyCalorieCalculatorTool, fetchWorkoutPlanTool } from '../personalTrainer/fitnessNewsTool'; // import your tools
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-export async function salesAgentGemini(query: string) {
+export async function fitnessAgentGemini(query: string) {
   const modelai = getModelConfig()
   const systemInstructions = `
-You are a sales specialist for Fitness  Co.
-Your role:
-- Provide pricing information for all products
-- Calculate bulk discounts (10% for 5+ items, 20% for 10+ items)
-- Inform about current promotions (e.g., 20% off first order with code Fitness 20)
-- Suggest product bundles for better value
-- Be enthusiastic but not pushy
-
-Products:
-- Fitness Dream: $79.99
-- SkyFit  Fitness : $99.99
-- SpeedFit: $89.99
+You are a certified fitness trainer.
+      You design personalized workout programs or diet programs based on user goals.
+      
+      Tasks:
+      - Create beginner, intermediate, or advanced workout plans
+      - Recommend weekly routines (split training, cardio days)
+      - Give rest & recovery advice
+      - Adjust difficulty if requested
+      - plan a daily or weekly diet
+      - calculate the calories or bmi
+      - suggest the low calories food or low fat
+      
+      Keep your tone encouraging, clear, and motivating.
 
 Return your answer ONLY in JSON format:
 {
@@ -32,6 +35,11 @@ Return your answer ONLY in JSON format:
       model: modelai as string,
       contents: [{ role: "user", parts: [{ text: query }] }],
       config: {
+    //   tools: [
+    //   bmiCalculatorTool,
+    //   dailyCalorieCalculatorTool,
+    //   fetchWorkoutPlanTool
+    // ], 
         systemInstruction: systemInstructions,
         responseMimeType: "application/json",
         responseSchema: {
@@ -62,7 +70,7 @@ Return your answer ONLY in JSON format:
       ...json,
     };
   } catch (error) {
-    console.error("❌ Sales Agent (Gemini) Error:", error);
+    console.error("❌ fitness Agent (Gemini) Error:", error);
     return {
       success: false,
       response:

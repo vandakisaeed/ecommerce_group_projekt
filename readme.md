@@ -232,3 +232,4 @@ Saeed vandaki
 AI Systems Developer | Full-Stack Engineer
 
 📍 WBS Coding School — AI Project
+# AI_private

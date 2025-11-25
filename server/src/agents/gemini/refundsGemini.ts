@@ -47,7 +47,7 @@ const processRefundTool = {
 export async function refundsAgentGemini(query: string) {
   const modelai = getModelConfig()
   const systemInstructions = `
-You are a refunds and returns specialist for CloudPillow Co.
+You are a refunds and returns specialist for Fitness  Co.
 Handle returns, refunds, and warranty claims professionally.
 
 Policies:

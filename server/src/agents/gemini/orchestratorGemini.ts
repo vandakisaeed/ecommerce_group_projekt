@@ -3,6 +3,7 @@ import { refundsAgentGemini } from "./refundsGemini.ts";
 import { customerSupportAgentGemini } from "./customerSupportGemini.ts";
 import { salesAgentGemini } from "./salesGemini.ts";
 import { escalationAgentGemini } from "./escalationGemini.ts";
+import {fitnessAgentGemini} from "./fitnessagent.ts"
 import { getModelConfig  } from "./configGemini.ts";
 import { cwd } from "process";
 
@@ -10,11 +11,13 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 // --- Routing function that calls the actual Gemini agents ---
 async function routeCustomerQuery(
-  agent: "customerSupport" | "sales" | "refunds" | "escalation",
+  agent: "FitnessTrainer"|"customerSupport" | "sales" | "refunds" | "escalation",
   query: string,
   reason?: string
 ) {
   switch (agent) {
+    case "FitnessTrainer":
+      return fitnessAgentGemini(query);
     case "customerSupport":
       return customerSupportAgentGemini(query);
     case "sales":
@@ -37,7 +40,7 @@ const routeCustomerQueryTool = {
       agent: {
         type: Type.STRING,
         description: "The name of the specialist agent to route the query to.",
-        enum: ["customerSupport", "sales", "refunds", "escalation"],
+        enum: ["FitnessTrainer","customerSupport", "sales", "refunds", "escalation"],
       },
       query: {
         type: Type.STRING,
@@ -53,11 +56,11 @@ const routeCustomerQueryTool = {
   },
 };
 
-// --- Guardrail: ensures query is relevant to CloudPillow Co. ---
+// --- Guardrail: ensures query is relevant to Fitness  Co. ---
 async function checkRelevanceGuardrail(query: string): Promise<boolean> {
   const prompt = `
   Respond ONLY with {"isRelevant": true} or {"isRelevant": false}.
-  Is the following customer query relevant to a pillow company?
+  Is the following customer query relevant to a Fitness  company?
   QUERY: "${query}"
   `;
 
@@ -92,20 +95,21 @@ export async function runOrchestrator(customerQuery: string) {
   const isRelevant = await checkRelevanceGuardrail(customerQuery);
   if (!isRelevant) {
     console.log("🛑 Guardrail tripwire triggered");
-    return "Your query seems unrelated to CloudPillow Co. Please ask about products, shipping, or services.";
+    return "Your query seems unrelated to Fitness  Co. Please ask about fitness trainnig , diet,products, shipping, or services.";
   }
 
   console.log("✅ Passed guardrail. Routing...");
 
   const instructions = `
-You are the triage agent for CloudPillow Co. customer support.
-Your ONLY job is to decide which specialized agent handles the customer's query.
-- upset/angry/frustrated → 'escalation' with reason
-- pricing/bulk orders → 'sales'
-- return/refund/exchange → 'refunds'
-- general product/shipping/warranty questions → 'customerSupport'
-Do NOT answer the query yourself. Output MUST call 'routeCustomerQuery'.
-`;
+    You are the triage agent for Fitness  Co. customer support.
+    Your ONLY job is to decide which specialized agent handles the customer's query.
+    - fitness trainer , workout plan, diet plan → 'fitnessTrainer'
+    - upset/angry/frustrated → 'escalation' with reason
+    - pricing/bulk orders → 'sales'
+    - return/refund/exchange → 'refunds'
+    - general product/shipping/warranty questions → 'customerSupport'
+    Do NOT answer the query yourself. Output MUST call 'routeCustomerQuery'.
+    `;
 
   try {
     const response = await ai.models.generateContent({
@@ -124,7 +128,7 @@ Do NOT answer the query yourself. Output MUST call 'routeCustomerQuery'.
     const fnCall = response.functionCalls?.[0];
     if (fnCall && fnCall.args) {
       const args = fnCall.args as {
-        agent: "customerSupport" | "sales" | "refunds" | "escalation";
+        agent: "FitnessTrainer"|"customerSupport" | "sales" | "refunds" | "escalation";
         query: string;
         reason?: string;
       };

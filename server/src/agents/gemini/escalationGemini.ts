@@ -16,7 +16,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 export async function escalationAgentGemini(query: string, p0: string) {
   const modelai = getModelConfig()
   const systemInstructions = `
-You are an escalation specialist for CloudPillow Co.
+You are an escalation specialist for Fitness  Co.
 
 Your mission: handle upset or frustrated customers with maximum empathy.
 
